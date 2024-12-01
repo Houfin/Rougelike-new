@@ -1,14 +1,75 @@
 #include <SFML/Graphics.hpp>
 #include <iostream> 
-#include <stdio.h>
+#include <string>
+#include <vector>
+#include "map.h"
+#include "entity.h"
 
-void moveEntity(sf::Text* entity, int xChange, int yChange) {
-    float tileWidth = entity->getLocalBounds().width;
-    float tileHeight = entity->getLocalBounds().height;
-    if (entity->getPosition().x + xChange < 0 || entity->getPosition().x + xChange > 80*tileWidth || entity->getPosition().y + yChange < 0 || entity->getPosition().y + yChange > 50 * tileHeight) {
+const int TILE_SIZE = 24;
+const int NUM_TILES_HEIGHT = 35;
+const int NUM_TILES_WIDTH = 60;
+bool refresh = false;
+
+void displayMap(Map& map, sf::RenderWindow& window, sf::Font& font) {
+    for (int i = 0; i < map.getHeight(); ++i) {
+        for (int j = 0; j < map.getWidth(); ++j) {
+            sf::Text tileSprite(".", font, TILE_SIZE);
+            tileSprite.setFillColor(sf::Color::White);
+
+            if (map.getTile(j, i).getType() == "wall") {
+                tileSprite.setString("#");
+            }
+
+            tileSprite.setPosition(TILE_SIZE * (j+0.25), TILE_SIZE * (i-0.375));
+
+            window.draw(tileSprite);
+        }
+    }
+}
+
+void displayEntities(std::vector<Entity*>& entities, sf::RenderWindow& window, sf::Font& font) {
+    for (int i = 0; i < entities.size(); ++i) {
+        sf::Text entitySprite(entities.at(i)->getSymbol(), font, TILE_SIZE);
+        entitySprite.setFillColor(entities.at(i)->getColour());
+        entitySprite.setPosition((entities.at(i)->getX() + 0.25) * TILE_SIZE, (entities.at(i)->getY() - 0.125) * TILE_SIZE);
+
+        sf::RectangleShape clear(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+        clear.setFillColor(sf::Color::Black);
+        clear.setPosition((entities.at(i)->getX() + 0.25) * TILE_SIZE, (entities.at(i)->getY() - 0.125) * TILE_SIZE);
+
+        window.draw(clear);
+        window.draw(entitySprite);
+    }
+}
+
+void moveEntity(Entity& entity, int xChange, int yChange, Map* map) {
+    if (entity.getX() + xChange < 0 || entity.getX() + xChange > (NUM_TILES_WIDTH-1) 
+        || entity.getY() + yChange < 0 || entity.getY() + yChange > (NUM_TILES_HEIGHT-1)) {
         return;
     }
-    entity->setPosition(entity->getPosition().x + xChange, entity->getPosition().y + yChange);
+    Tile tile = map->getTile(entity.getX() + xChange, entity.getY() + yChange);
+    if (tile.getBlocksMove()) {
+        return;
+    }
+    entity.setPos(entity.getX() + xChange, entity.getY() + yChange);
+    refresh = true;
+}
+
+void toggleFullScreen(sf::RenderWindow& window, sf::View& view, bool& isFullScreen) {
+    window.close();
+    isFullScreen = !isFullScreen;
+
+    if (isFullScreen) {
+        sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+        window.create(desktop, "Fullscreen", sf::Style::Fullscreen);
+    }
+    else {
+        window.create(sf::VideoMode(TILE_SIZE * NUM_TILES_WIDTH, TILE_SIZE * NUM_TILES_HEIGHT), "Windowed", sf::Style::Close);
+    }
+
+    view.setSize(NUM_TILES_WIDTH * TILE_SIZE, NUM_TILES_HEIGHT * TILE_SIZE);
+    view.setCenter(view.getSize() / 2.f);
+    window.setView(view);
 }
 
 int main() {
@@ -21,74 +82,90 @@ int main() {
     }
 
     //Creates the player sprite
-    sf::Text playerText;
-    playerText.setFont(font);
-    playerText.setString("@");
-    playerText.setCharacterSize(24);
-    playerText.setFillColor(sf::Color::White);
+    std::vector<Entity*> entities;
+    Entity player(NUM_TILES_WIDTH/2, NUM_TILES_HEIGHT/2, '@', sf::Color::White);
+    entities.push_back(&player);
 
-    sf::FloatRect textbounds = playerText.getLocalBounds();
-    float tileWidth = textbounds.width;
-    float tileHeight = textbounds.height;
-
+    //Create a new map object
+    Map map = Map(NUM_TILES_WIDTH, NUM_TILES_HEIGHT);
+    map.generateMap();
 
     // Creates a window
-    sf::RenderWindow window(sf::VideoMode(tileWidth*82, tileHeight*52), "CPP Rougelike");
+    sf::RenderWindow window(sf::VideoMode(TILE_SIZE * NUM_TILES_WIDTH, TILE_SIZE * NUM_TILES_HEIGHT), "CPP Rougelike");
+    sf::View view(sf::FloatRect(0, 0, TILE_SIZE * NUM_TILES_WIDTH, TILE_SIZE * NUM_TILES_HEIGHT));
+    window.setView(view);
+    bool fullscreen = false;
 
     if (!window.isOpen()) {
         std::cerr << "Window couldn't be opened!" << std::endl;
         return -1;  // Exit if the window fails to open
     }
 
-    playerText.setPosition(tileWidth*40, tileHeight*25);
-
     // Game loop
     while (window.isOpen()) {
+        
+        // Clear the window with a black color
+        window.clear(sf::Color::Black);
+
+        displayMap(map, window, font);
+
+        displayEntities(entities, window, font);
+
+        // Display the contents of the window
+        window.display();
+        
         // Event handling
         sf::Event event;
+        
         while (window.pollEvent(event)) {
+
             if (event.type == sf::Event::Closed) //red x in the corner is pressed
                 window.close();
 
             //Check for all relevant keypress events
             if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Numpad8) {
-                    moveEntity(&playerText, 0, -tileHeight);
+                //Ctrl - Key operations
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) {
+                    if (event.key.code == sf::Keyboard::F) {
+                        toggleFullScreen(window, view, fullscreen);
+                    }
                 }
-                if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::Numpad2) {
-                    moveEntity(&playerText, 0, tileHeight);
+                //Shift - Key operations
+                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+                    
                 }
-                if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::Numpad4) {
-                    moveEntity(&playerText, -tileWidth, 0);
-                }
-                if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::Numpad6) {
-                    moveEntity(&playerText, tileWidth, 0);
-                }
-                if (event.key.code == sf::Keyboard::Numpad7) {
-                    moveEntity(&playerText, -tileWidth, -tileHeight);
-                }
-                if (event.key.code == sf::Keyboard::Numpad9) {
-                    moveEntity(&playerText, tileWidth, -tileHeight);
-                }
-                if (event.key.code == sf::Keyboard::Numpad1) {
-                    moveEntity(&playerText, -tileWidth, tileHeight);
-                }
-                if (event.key.code == sf::Keyboard::Numpad3) {
-                    moveEntity(&playerText, tileWidth, tileHeight);
-                }
-                if (event.key.code == sf::Keyboard::Escape) {
-                    window.close();
+                //Basic Key operations
+                else {
+                    if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Numpad8) {
+                        moveEntity(player, 0, -1, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::Numpad2) {
+                        moveEntity(player, 0, 1, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::Numpad4) {
+                        moveEntity(player, -1, 0, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::Numpad6) {
+                        moveEntity(player, 1, 0, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Numpad7) {
+                        moveEntity(player, -1, -1, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Numpad9) {
+                        moveEntity(player, 1, -1, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Numpad1) {
+                        moveEntity(player, -1, 1, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Numpad3) {
+                        moveEntity(player, 1, 1, &map);
+                    }
+                    if (event.key.code == sf::Keyboard::Escape) {
+                        window.close();
+                    }
                 }
             }
         }
-
-        // Clear the window with a black color
-        window.clear(sf::Color::Black);
-
-        window.draw(playerText);
-
-        // Display the contents of the window
-        window.display();
     }
 
     std::cout << "Program exited successfully!" << std::endl;
