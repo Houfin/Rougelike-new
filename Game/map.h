@@ -1,5 +1,18 @@
 #include <string>
 
+class Room {
+    private:
+    int centerX;
+    int centerY;
+
+    public:
+    Room(int, int);
+    int getX();
+    int getY();
+    void setX(int);
+    void setY(int);
+};
+
 class Tile {
     private:
     bool blocksMove;
@@ -29,5 +42,24 @@ class Map {
     void setTile(int, int, bool, bool, std::string);
     int getWidth();
     int getHeight();
-    void generateMap();
+};
+
+class Node {
+    private:
+    int x;
+    int y;
+    int width;
+    int height;
+    Node* child1;
+    Node* child2;
+
+    public:
+    Node(int, int, int, int);
+    int getX();
+    int getY();
+    int getWidth();
+    int getHeight();
+    bool createChildren(Map*, std::vector<Room>*);
+    void joinChildren(Map*, std::vector<Room>*);
+    Room createRoom(Map*);
 };

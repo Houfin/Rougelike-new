@@ -5,9 +5,9 @@
 #include "map.h"
 #include "entity.h"
 
-const int TILE_SIZE = 24;
-const int NUM_TILES_HEIGHT = 35;
-const int NUM_TILES_WIDTH = 60;
+const int TILE_SIZE = 18;
+const int NUM_TILES_HEIGHT = 50;
+const int NUM_TILES_WIDTH = 80;
 bool refresh = false;
 
 void displayMap(Map& map, sf::RenderWindow& window, sf::Font& font) {
@@ -42,6 +42,23 @@ void displayEntities(std::vector<Entity*>& entities, sf::RenderWindow& window, s
     }
 }
 
+void generateMap(Map* map) {
+    srand(time(0));
+    std::cerr << "Starts generating map" << std::endl;
+
+    // Every tile at the start is a wall.  
+    for (int i = 0; i < map->getWidth(); ++i) {
+        for (int j = 0; j < map->getHeight(); ++j) {
+            map->setTile(i, j, true, true, "wall");
+        }
+    }
+
+    Node parent = Node(1, 1, map->getWidth() - 2, map->getHeight() - 2);
+    std::vector<Room> rooms;
+    parent.createChildren(map, &rooms);
+    parent.joinChildren(map, &rooms);
+}
+
 void moveEntity(Entity& entity, int xChange, int yChange, Map* map) {
     if (entity.getX() + xChange < 0 || entity.getX() + xChange > (NUM_TILES_WIDTH-1) 
         || entity.getY() + yChange < 0 || entity.getY() + yChange > (NUM_TILES_HEIGHT-1)) {
@@ -74,6 +91,8 @@ void toggleFullScreen(sf::RenderWindow& window, sf::View& view, bool& isFullScre
 
 int main() {
 
+    std::cerr << "Main method is run" << std::endl;
+
     //Loads a font from a file
     sf::Font font;
     if (!font.loadFromFile("./Inconsolata-Regular.ttf")) {
@@ -88,7 +107,8 @@ int main() {
 
     //Create a new map object
     Map map = Map(NUM_TILES_WIDTH, NUM_TILES_HEIGHT);
-    map.generateMap();
+    generateMap(&map);
+    std::cerr << "Successfully generates map" << std::endl;
 
     // Creates a window
     sf::RenderWindow window(sf::VideoMode(TILE_SIZE * NUM_TILES_WIDTH, TILE_SIZE * NUM_TILES_HEIGHT), "CPP Rougelike");
@@ -103,7 +123,6 @@ int main() {
 
     // Game loop
     while (window.isOpen()) {
-        
         // Clear the window with a black color
         window.clear(sf::Color::Black);
 
