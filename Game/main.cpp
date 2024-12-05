@@ -16,9 +16,7 @@ void displayMap(Map& map, sf::RenderWindow& window, sf::Font& font) {
             sf::Text tileSprite(".", font, TILE_SIZE);
             tileSprite.setFillColor(sf::Color::White);
 
-            if (map.getTile(j, i).getType() == "wall") {
-                tileSprite.setString("#");
-            }
+            tileSprite.setString(map.getTile(j, i).getSymbol());
 
             tileSprite.setPosition(TILE_SIZE * (j+0.25), TILE_SIZE * (i-0.375));
 
@@ -49,11 +47,11 @@ void generateMap(Map* map) {
     // Every tile at the start is a wall.  
     for (int i = 0; i < map->getWidth(); ++i) {
         for (int j = 0; j < map->getHeight(); ++j) {
-            map->setTile(i, j, true, true, "wall");
+            map->setTile(i, j, true, true, "wall", '#', false);
         }
     }
 
-    Node parent = Node(1, 1, map->getWidth() - 2, map->getHeight() - 2);
+    BSPNode parent = BSPNode(1, 1, map->getWidth() - 1, map->getHeight() - 1);
     std::vector<Room> rooms;
     parent.createChildren(map, &rooms);
     parent.joinChildren(map, &rooms);

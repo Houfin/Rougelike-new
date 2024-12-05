@@ -1,26 +1,3 @@
-How to make a good map?
-
-Small room in the center of every level.  This small room contains the staircase on which the player starts, and the staircase with which the player progresses.
-The latter is protected by a locked door, and the key is hidden somewhere in the level.  This is similar to an angband structure in that you have to explore the level until you find the way down.
-Possibly can have multiple keys appear, so that the entire level need not be explored every time.  This means that if the level is particularly dangerous, the player can do a cut-and-run approach.
-The key problem with this however, is that this cannot be the standard way of doing things.  In general, I want caution to be the name of the game.
-
-Should each room be automatically joined to another via a corridor?
-Should the central area of each level be hard-coded?
-
-I'm thinking 3/4 main rooms be default spread around the level and joined to the central area.
-From there, as each corridor is created, sometimes a room (corridor to a room?) is created, and more rooms branch off of that?
-Who knows?? I'm just messing around right now, we'll see how it ends up.
-
-Weirdly this map creation thing was meant to just be a short thing before moving on to status messages and entities etc, but it seems to be becoming a rather bigger part than I'd antipicated.
-
-What I could do is https://roguebasin.com/index.php/Basic_BSP_Dungeon_generation and then move on to other things, and revise level generation at a later stage. 
-
-
-I'll keep this saved for now so that I can refer back to it in future.
-
-
-
 For BSP:
 
 Need to have a tree of nodes.  Each node 'owns' two more nodes.  Iterate through each node owned by each node, and add two nodes to it.  
@@ -28,3 +5,10 @@ Then iterate through each node at the lowest level, and add a room to it.
 Then, create corridors between each room.  These should connect between sister nodes.  So, for node A, the room in A1 connects to the room in A2. 
 Then, one of the nodes in A connects to one of the nodes in B.  
 Possible add a few wiggly corridors throughout the map, so that there is a bit more randomness.  
+
+I really like BSP at the moment, as it allows me to give each leaf node a chance of having a non-rectangular room in it.
+
+
+Corridors!
+
+Moves from door 1 to door 2.  
