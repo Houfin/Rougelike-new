@@ -8,7 +8,7 @@
 
 Room::Room() {};
 
-Room::Room(int startX, int startY, int endX, int endY, int doorX, int doorY) : startX(startX), startY(startY), endX(endX), endY(endY), doorX(doorX), doorY(doorY){
+Room::Room(int startX, int startY, int endX, int endY) : startX(startX), startY(startY), endX(endX), endY(endY) {
 }
 
 int Room::getStartX() {
@@ -27,14 +27,6 @@ int Room::getEndY() {
     return endY;
 }
 
-int Room::getDoorX() {
-    return doorX;
-}
-
-int Room::getDoorY() {
-    return doorY;
-}
-
 void Room::setStart(int x, int y) {
     startX = x;
     startY = y;
@@ -43,19 +35,6 @@ void Room::setStart(int x, int y) {
 void Room::setEnd(int x, int y) {
     endX = x;
     endY = y;
-}
-
-void Room::setDoor(int x, int y) {
-    doorX = x;
-    doorY = y;
-}
-
-int Room::getCorridorDirection() {
-    return corridorDirection;
-}
-
-void Room::setCorridorDirection(int corridorDirection) {
-    corridorDirection = corridorDirection;
 }
 
 
@@ -78,49 +57,30 @@ int BSPNode::getY() {
     return y;
 }
 
-Room BSPNode::createRoom(Map* map) {
+Room BSPNode::createRoom(Map* map, int roomNumber) {
     int roomWidth = rand() % (width - 6) + 4;
     int roomHeight = rand() % (height - 6) + 4;
-    int roomX = x + rand() % (width - roomWidth);
-    int roomY = y + rand() % (height - roomHeight);
-    int doorX, doorY;
-    Room room = Room(roomX, roomY, roomX + roomWidth, roomY + roomHeight, 0, 0);
-    //Generate the X and Y values of the door to the room
-    if (abs(roomX - map->getWidth() / 2) < abs(roomY - map->getHeight() / 2)) {
-        if (roomY > map->getHeight() / 2) {
-            doorY = roomY - 1;
-            doorX = roomX - 1 + rand() % (roomWidth - 2) + 1;
-            room.setCorridorDirection(1);
-        }
-        else {
-            doorY = roomY + roomHeight;
-            doorX = roomX - 1 + rand() % (roomWidth - 2) + 1;
-            room.setCorridorDirection(1);
-        }
-    }
-    else {
-        if (roomX > map->getWidth() / 2) {
-            doorX = roomX - 1;
-            doorY = roomY - 1 + rand() % (roomHeight - 2) + 1;
-            room.setCorridorDirection(0);
-        }
-        else {
-            doorX = roomX + roomWidth;
-            doorY = roomY - 1 + rand() % (roomHeight - 2) + 1;
-            room.setCorridorDirection(0);
-        }
-    }
-    
-    room.setDoor(doorX, doorY);
+    int roomX = x + (width - roomWidth) / 2;
+    int roomY = y + (height - roomHeight) / 2;
+    Room room = Room(roomX, roomY, roomX + roomWidth, roomY + roomHeight);
 
     for (int y = roomY; y < roomY + roomHeight; ++y) {
         for (int x = roomX; x < roomX + roomWidth; ++x) {
-            map->setTile(x, y, false, false, "floor", '.', true);
+            map->setTile(x, y, false, false, "floor", ".", roomNumber);
+        }
+    }
+
+    for (int y = roomY - 1; y <= roomY + roomHeight; ++y) {
+        for (int x = roomX - 1; x <= roomX + roomWidth; ++x) {
+            // Check if it"s a border but not inside the room
+            if (x == roomX - 1 || x == roomX + roomWidth || y == roomY - 1 || y == roomY + roomHeight) {
+                map->setTile(x, y, true, true, "room wall", "#", roomNumber);
+            }
         }
     }
 
     std::cout << "A room is made at (" << roomX << ", " << roomY << ") with width " 
-        << roomWidth << " and height " << roomHeight << "\n";
+        << roomWidth << " and height " << roomHeight << "\n" << "Room number " << roomNumber << std::endl;
 
     return room;
 }
@@ -128,15 +88,15 @@ Room BSPNode::createRoom(Map* map) {
 bool BSPNode::createChildren(Map* map, std::vector<Room>* rooms) {
     std::cout << "Creating children for BSPNode at (" << x << ", " << y << ") with width " 
           << width << " and height " << height << "\n";
-    if (width <= 30 && height <= 30) {
+    if (width <= 16 && height <= 16) {
         return true;
     }
 
     bool splitHorizontally = (rand() % 2 == 0);
-    if (width <= 30) {
+    if (width <= 16) {
         splitHorizontally = true;
     }
-    else if (height <= 30) {
+    else if (height <= 16) {
         splitHorizontally = false;
     }
 
@@ -151,82 +111,82 @@ bool BSPNode::createChildren(Map* map, std::vector<Room>* rooms) {
         child2 = new BSPNode(x + split, y, width - split, height);
     }
 
-    if (child1->createChildren(map, rooms)) {
-        rooms->push_back(child1->createRoom(map));
+    if (child1->createChildren(map, rooms) && rand() % 6 != 0) {
+        rooms->push_back(child1->createRoom(map, rooms->size()));
     }
 
-    if (child2->createChildren(map, rooms)) {
-        rooms->push_back(child2->createRoom(map));
+    if (child2->createChildren(map, rooms) && rand() % 6 != 0) {
+        rooms->push_back(child2->createRoom(map, rooms->size()));
     }
+
+    joinChildren(map);
 
     return false;
 }
 
-void BSPNode::joinChildren(Map* map, std::vector<Room>* rooms) {
-    
-    for (int i = 1; i < rooms->size(); ++i) {
-        //Set start position and end position
-        int door1X = rooms->at(i-1).getDoorX();
-        int door1Y = rooms->at(i-1).getDoorY();
-        int door2X = rooms->at(i).getDoorX();
-        int door2Y = rooms->at(i).getDoorY();
-        int direction = rooms->at(i).getCorridorDirection();
-        int currentX = door1X;
-        int currentY = door1Y;
-        int counter = 0;
-        
-        while (currentX != door2X || currentY != door2Y) {
-            if (rand() % 2 == 0) {
-                while (currentX != door2X) {
-                    currentX += (currentX < door2X) ? 1 : -1;
-                    counter += 1;
+void BSPNode::joinChildren(Map* map) {
+    int currentX = child1->getX() + child1->getWidth() / 2;
+    int currentY = child1->getY() + child1->getHeight() / 2;
+    int endX = child2->getX() + child2->getWidth() / 2;
+    int endY = child2->getY() + child2->getHeight() / 2;
+    bool prevdoor = false; 
+    int prevX = -1;
+    int prevY = -1;
 
-                    if (abs(currentX - door1X) > 6) {
-                        currentY += (rand() % 6 == 0) ? 1 : 0;
-                        counter += 1;
+    std::cout << "Making corridor for a node split" << std::endl;
+
+    while (currentX != endX || currentY != endY) {
+        if (rand() % 2 == 0) {
+            while (currentX != endX && rand() % 4 != 0) {
+                currentX += (endX > currentX) ? 1 : -1;
+                if (map->getTile(currentX, currentY).getType() == "room wall") {
+                    if (prevdoor == false) {
+                        map->setTile(currentX, currentY, false, false, "door", "+");
+                        prevdoor = true;
                     }
-                    if (map->getTile(currentX, currentY).getRoom() == true) {
-                        break;
-                    }
-                    map->setTile(currentX, currentY, false, false, "floor", '.', true);
-                    if (rand() % 3 == 0) {
-                        break;
-                    }
+                    prevX = currentX;
+                    prevY = currentY;
                 }
-            } 
-            else {
-                while (currentY != door2Y) {
-                    currentY += (currentY < door2Y) ? 1 : -1;
-                    counter += 1;
-
-                    if (abs(currentY - door1Y) > 6) {
-                        counter += 1;
-                        currentX += (rand() % 6 == 0) ? 1 : 0;
+                else {
+                    if (prevdoor == true && map->getTile(currentX, currentY).getType() == "wall") {
+                        if (map->getTile(currentX, currentY).getType() != "floor") {
+                            map->setTile(prevX, prevY, false, false, "door", "+");
+                            prevdoor = false;
+                        }
                     }
-                    if (map->getTile(currentX, currentY).getRoom() == true) {
-                        break;
-                    }
-
-                    map->setTile(currentX, currentY, false, false, "floor", '.', true);
-                    if (rand() % 3 == 0) {
-                        break;
-                    }
+                    map->setTile(currentX, currentY, false, false, "floor", ".");
                 }
-            }
-            if (map->getTile(currentX, currentY).getRoom() == true && counter > 6) {
-                    break;
             }
         }
-
-        map->setTile(door2X, door2Y, false, true, "door", '+', true);
-        map->setTile(door1X, door1Y, false, true, "door", '+', true);
+        else {
+            while (currentY != endY && rand() % 4 != 0) {
+                currentY += (endY > currentY) ? 1 : -1;
+                if (map->getTile(currentX, currentY).getType() == "room wall") {
+                    if (prevdoor == false) {
+                        map->setTile(currentX, currentY, false, false, "door", "+");
+                        prevdoor = true;
+                    }
+                    prevX = currentX;
+                    prevY = currentY;
+                }
+                else {
+                    if (prevdoor == true && map->getTile(currentX, currentY).getType() == "wall") {
+                        if (map->getTile(currentX, currentY).getType() != "floor") {
+                            map->setTile(prevX, prevY, false, false, "door", "+");
+                            prevdoor = false;
+                        }
+                    }
+                    map->setTile(currentX, currentY, false, false, "floor", ".");
+                }
+            }
+        }
     }
 }
 
 
 Tile::Tile(){}
 
-Tile::Tile(bool blocksMove, bool blocksLight, std::string type, char symbol, bool corridorAllowed) : blocksLight(blocksLight), blocksMove(blocksMove), type(type), symbol(symbol), room(room) {
+Tile::Tile(bool blocksMove, bool blocksLight, std::string type, std::string symbol, int room) : blocksLight(blocksLight), blocksMove(blocksMove), type(type), symbol(symbol), room(room) {
 }
 
 bool Tile::getBlocksLight() {
@@ -241,19 +201,19 @@ std::string Tile::getType() {
     return type;
 }
 
-char Tile::getSymbol() {
+std::string Tile::getSymbol() {
     return symbol;
 }
 
-bool Tile::getRoom() {
+int Tile::getRoom() {
     return room;
 }
 
-void Tile::setSymbol(char new_symbol) {
+void Tile::setSymbol(std::string new_symbol) {
     symbol = new_symbol;
 }
 
-void Tile::setRoom(bool new_room) {
+void Tile::setRoom(int new_room) {
     room = new_room;
 }
 
@@ -277,7 +237,12 @@ Tile& Map::getTile(int x, int y) {
     return tiles.at(y).at(x);
 }
 
-void Map::setTile(int x, int y, bool blocksMove, bool blocksLight, std::string type, char symbol, bool room) {
+void Map::setTile(int x, int y, bool blocksMove, bool blocksLight, std::string type, std::string symbol, int room) {
+    tiles.at(y).at(x) = Tile(blocksMove, blocksLight, type, symbol, room);
+}
+
+void Map::setTile(int x, int y, bool blocksMove, bool blocksLight, std::string type, std::string symbol) {
+    int room = tiles.at(y).at(x).getRoom();
     tiles.at(y).at(x) = Tile(blocksMove, blocksLight, type, symbol, room);
 }
 

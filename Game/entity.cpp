@@ -1,6 +1,6 @@
 #include "entity.h"
 
-Entity::Entity(int x, int y, char symbol, sf::Color colour) : x(x), y(y), symbol(symbol), colour(colour) {
+Entity::Entity(int x, int y, char symbol, sf::Color colour) : x(x), y(y), symbol(symbol), colour(colour), prevX(0), prevY(0) {
 }
 
 int Entity::getX() {
@@ -9,6 +9,14 @@ int Entity::getX() {
 
 int Entity::getY() {
     return y;
+}
+
+int Entity::getPrevX() {
+    return prevX;
+}
+
+int Entity::getPrevY() {
+    return prevY;
 }
 
 char Entity::getSymbol() {
@@ -22,6 +30,11 @@ sf::Color Entity::getColour() {
 void Entity::setPos(int new_x, int new_y) {
     x = new_x; 
     y = new_y;
+}
+
+void Entity::setPrevPos(int new_x, int new_y) {
+    prevX = new_x; 
+    prevY = new_y;
 }
 
 void Entity::setSymbol(char new_symbol) {

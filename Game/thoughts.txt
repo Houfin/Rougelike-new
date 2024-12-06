@@ -12,3 +12,28 @@ I really like BSP at the moment, as it allows me to give each leaf node a chance
 Corridors!
 
 Moves from door 1 to door 2.  
+
+        //if (rand() % 2 == 0) {
+            if (currentX != endX) {
+                currentX += (currentX < endX) ? 1 : -1;
+                //if (map->getTile(currentX, currentY).getType() == "room wall" && map->getTile(currentX, currentY).getRoom() != -1 && map->getTile(currentX, currentY).getRoom() != room) {
+                //    room = map->getTile(currentX, currentY).getRoom();
+                //    map->setTile(currentX, currentY, false, false, "door", '+');
+                //}
+                //else {
+                map->setTile(currentX, currentY, false, false, "floor", '.');
+                //}
+            }
+        //}
+        //else {
+            if (currentY != endY) {
+                currentY += (currentY < endY) ? 1 : -1;
+                //if (map->getTile(currentX, currentY).getType() == "room wall" && map->getTile(currentX, currentY).getRoom() != -1 && map->getTile(currentX, currentY).getRoom() != room) {
+                //    room = map->getTile(currentX, currentY).getRoom();
+                //    map->setTile(currentX, currentY, false, false, "door", '+');
+                //}
+                //else {
+                map->setTile(currentX, currentY, false, false, "floor", '.');
+                //}
+            }
+        //}
