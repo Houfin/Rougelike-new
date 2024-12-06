@@ -8,32 +8,7 @@ Possible add a few wiggly corridors throughout the map, so that there is a bit m
 
 I really like BSP at the moment, as it allows me to give each leaf node a chance of having a non-rectangular room in it.
 
-
 Corridors!
 
-Moves from door 1 to door 2.  
+Moves from centre of child 1 to centre of child 2.  Results in straight corridors, but it makes sense for a 'dungeon' biome.
 
-        //if (rand() % 2 == 0) {
-            if (currentX != endX) {
-                currentX += (currentX < endX) ? 1 : -1;
-                //if (map->getTile(currentX, currentY).getType() == "room wall" && map->getTile(currentX, currentY).getRoom() != -1 && map->getTile(currentX, currentY).getRoom() != room) {
-                //    room = map->getTile(currentX, currentY).getRoom();
-                //    map->setTile(currentX, currentY, false, false, "door", '+');
-                //}
-                //else {
-                map->setTile(currentX, currentY, false, false, "floor", '.');
-                //}
-            }
-        //}
-        //else {
-            if (currentY != endY) {
-                currentY += (currentY < endY) ? 1 : -1;
-                //if (map->getTile(currentX, currentY).getType() == "room wall" && map->getTile(currentX, currentY).getRoom() != -1 && map->getTile(currentX, currentY).getRoom() != room) {
-                //    room = map->getTile(currentX, currentY).getRoom();
-                //    map->setTile(currentX, currentY, false, false, "door", '+');
-                //}
-                //else {
-                map->setTile(currentX, currentY, false, false, "floor", '.');
-                //}
-            }
-        //}

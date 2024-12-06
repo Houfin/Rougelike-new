@@ -136,49 +136,29 @@ void BSPNode::joinChildren(Map* map) {
     std::cout << "Making corridor for a node split" << std::endl;
 
     while (currentX != endX || currentY != endY) {
-        if (rand() % 2 == 0) {
-            while (currentX != endX && rand() % 4 != 0) {
-                currentX += (endX > currentX) ? 1 : -1;
-                if (map->getTile(currentX, currentY).getType() == "room wall") {
-                    if (prevdoor == false) {
-                        map->setTile(currentX, currentY, false, false, "door", "+");
-                        prevdoor = true;
-                    }
-                    prevX = currentX;
-                    prevY = currentY;
-                }
-                else {
-                    if (prevdoor == true && map->getTile(currentX, currentY).getType() == "wall") {
-                        if (map->getTile(currentX, currentY).getType() != "floor") {
-                            map->setTile(prevX, prevY, false, false, "door", "+");
-                            prevdoor = false;
-                        }
-                    }
-                    map->setTile(currentX, currentY, false, false, "floor", ".");
-                }
+        if (currentX != endX) {
+            currentX += (endX > currentX) ? 1 : -1;
+        }
+
+        if (currentY != endY) {
+            currentY += (endY > currentY) ? 1 : -1;
+        }
+        if (map->getTile(currentX, currentY).getType() == "room wall") {
+            if (prevdoor == false) {
+                map->setTile(currentX, currentY, false, false, "door", "+");
+                prevdoor = true;
             }
+            prevX = currentX;
+            prevY = currentY;
         }
         else {
-            while (currentY != endY && rand() % 4 != 0) {
-                currentY += (endY > currentY) ? 1 : -1;
-                if (map->getTile(currentX, currentY).getType() == "room wall") {
-                    if (prevdoor == false) {
-                        map->setTile(currentX, currentY, false, false, "door", "+");
-                        prevdoor = true;
-                    }
-                    prevX = currentX;
-                    prevY = currentY;
-                }
-                else {
-                    if (prevdoor == true && map->getTile(currentX, currentY).getType() == "wall") {
-                        if (map->getTile(currentX, currentY).getType() != "floor") {
-                            map->setTile(prevX, prevY, false, false, "door", "+");
-                            prevdoor = false;
-                        }
-                    }
-                    map->setTile(currentX, currentY, false, false, "floor", ".");
+            if (prevdoor == true && map->getTile(currentX, currentY).getType() == "wall") {
+                if (map->getTile(currentX, currentY).getType() != "floor") {
+                    map->setTile(prevX, prevY, false, false, "door", "+");
+                    prevdoor = false;
                 }
             }
+            map->setTile(currentX, currentY, false, false, "floor", ".");
         }
     }
 }
