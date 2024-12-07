@@ -24,20 +24,26 @@ class Tile {
     bool blocksLight;
     std::string type;
     std::string symbol;
-    int room;
+    bool visible = false;
+    bool lit = false;
+    bool seen = false;
 
     public:
     bool getBlocksMove();
     bool getBlocksLight();
+    bool getVisible();
+    bool getLit();
     std::string getType();
-    int getRoom();
     std::string getSymbol();
-    void setRoom(int);
+    bool getSeen();
     void setSymbol(std::string);
     void setBlocksMove(bool);
     void setBlocksLight(bool);
     void setType(std::string);
-    Tile(bool, bool, std::string, std::string, int);
+    void setVisible(bool);
+    void setLit(bool);
+    void setSeen();
+    Tile(bool, bool, std::string, std::string);
     Tile();
 };
 
@@ -48,9 +54,9 @@ class Map {
     std::vector<std::vector<Tile>> tiles;
 
     public:
+    void generateDungeon();
     Map(int, int);
     Tile& getTile(int, int);
-    void setTile(int, int, bool, bool, std::string, std::string, int);
     void setTile(int, int, bool, bool, std::string, std::string);
     int getWidth();
     int getHeight();
@@ -71,7 +77,7 @@ class BSPNode {
     int getY();
     int getWidth();
     int getHeight();
-    bool createChildren(Map*, std::vector<Room>*);
+    bool createChildren(Map*, std::vector<Room>*, bool);
     void joinChildren(Map*);
     Room createRoom(Map*, int);
 };

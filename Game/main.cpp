@@ -2,22 +2,29 @@
 #include <iostream> 
 #include <string>
 #include <vector>
-#include "map.h"
 #include "entity.h"
 
 const int TILE_SIZE = 18;
 const int NUM_TILES_HEIGHT = 50;
 const int NUM_TILES_WIDTH = 80;
-bool refresh = false;
 
 void displayMap(Map& map, sf::RenderWindow& window, sf::Font& font) {
     for (int i = 0; i < map.getHeight(); ++i) {
         for (int j = 0; j < map.getWidth(); ++j) {
-            sf::Text tileSprite(map.getTile(j, i).getSymbol(), font, TILE_SIZE);
-            tileSprite.setFillColor(sf::Color::White);
-            tileSprite.setPosition(TILE_SIZE * (j+0.25), TILE_SIZE * (i-0.125));
+            if (map.getTile(j, i).getVisible() == true) {
+                sf::Text tileSprite(map.getTile(j, i).getSymbol(), font, TILE_SIZE);
+                tileSprite.setFillColor(sf::Color::White);
+                tileSprite.setPosition(TILE_SIZE * (j+0.25), TILE_SIZE * (i-0.125));
 
-            window.draw(tileSprite);
+                window.draw(tileSprite);
+            }
+            else if (map.getTile(j, i).getSeen() == true) {
+                sf::Text tileSprite(map.getTile(j, i).getSymbol(), font, TILE_SIZE);
+                tileSprite.setFillColor(sf::Color(255, 255, 255, 125));
+                tileSprite.setPosition(TILE_SIZE * (j+0.25), TILE_SIZE * (i-0.125));
+
+                window.draw(tileSprite);
+            }
         }
     }
 }
@@ -35,36 +42,6 @@ void displayEntities(std::vector<Entity*>& entities, sf::RenderWindow& window, s
         window.draw(clear);
         window.draw(entitySprite);
     }
-}
-
-void generateMap(Map* map) {
-    srand(time(0));
-    std::cerr << "Starts generating map" << std::endl;
-
-    // Every tile at the start is a wall.  
-    for (int i = 0; i < map->getWidth(); ++i) {
-        for (int j = 0; j < map->getHeight(); ++j) {
-            map->setTile(i, j, true, true, "wall", "#", -1);
-        }
-    }
-
-    BSPNode parent = BSPNode(1, 1, map->getWidth() - 1, map->getHeight() - 1);
-    std::vector<Room> rooms;
-    parent.createChildren(map, &rooms);
-    parent.joinChildren(map);
-}
-
-void moveEntity(Entity& entity, int xChange, int yChange, Map* map) {
-    if (entity.getX() + xChange < 0 || entity.getX() + xChange > (NUM_TILES_WIDTH-1) 
-        || entity.getY() + yChange < 0 || entity.getY() + yChange > (NUM_TILES_HEIGHT-1)) {
-        return;
-    }
-    Tile tile = map->getTile(entity.getX() + xChange, entity.getY() + yChange);
-    if (tile.getBlocksMove()) {
-        return;
-    }
-    entity.setPos(entity.getX() + xChange, entity.getY() + yChange);
-    refresh = true;
 }
 
 void toggleFullScreen(sf::RenderWindow& window, sf::View& view, bool& isFullScreen) {
@@ -85,7 +62,7 @@ void toggleFullScreen(sf::RenderWindow& window, sf::View& view, bool& isFullScre
 }
 
 int main() {
-
+    srand(time(0));
     std::cerr << "Main method is run" << std::endl;
 
     //Loads a font from a file
@@ -97,14 +74,15 @@ int main() {
 
     //Creates the player sprite
     std::vector<Entity*> entities;
-    Entity player(NUM_TILES_WIDTH/2, NUM_TILES_HEIGHT/2, '@', sf::Color::White);
+    Entity player(NUM_TILES_WIDTH/2, NUM_TILES_HEIGHT/2, '@', sf::Color::White, 5);
     entities.push_back(&player);
 
     //Create a new map object
     Map map = Map(NUM_TILES_WIDTH, NUM_TILES_HEIGHT);
-    generateMap(&map);
+    map.generateDungeon();
     std::cerr << "Successfully generates map" << std::endl;
-
+    player.calculateFov(&map);
+    
     // Creates a window
     sf::RenderWindow window(sf::VideoMode(TILE_SIZE * NUM_TILES_WIDTH, TILE_SIZE * NUM_TILES_HEIGHT), "CPP Rougelike");
     sf::View view(sf::FloatRect(0, 0, TILE_SIZE * NUM_TILES_WIDTH, TILE_SIZE * NUM_TILES_HEIGHT));
@@ -151,28 +129,28 @@ int main() {
                 //Basic Key operations
                 else {
                     if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Numpad8) {
-                        moveEntity(player, 0, -1, &map);
+                        player.move(&map, 0, -1);
                     }
                     if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::Numpad2) {
-                        moveEntity(player, 0, 1, &map);
+                        player.move(&map, 0, 1);
                     }
                     if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::Numpad4) {
-                        moveEntity(player, -1, 0, &map);
+                        player.move(&map, -1, 0);
                     }
                     if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::Numpad6) {
-                        moveEntity(player, 1, 0, &map);
+                        player.move(&map, 1, 0);
                     }
                     if (event.key.code == sf::Keyboard::Numpad7) {
-                        moveEntity(player, -1, -1, &map);
+                        player.move(&map, -1, -1);
                     }
                     if (event.key.code == sf::Keyboard::Numpad9) {
-                        moveEntity(player, 1, -1, &map);
+                        player.move(&map, 1, -1);
                     }
                     if (event.key.code == sf::Keyboard::Numpad1) {
-                        moveEntity(player, -1, 1, &map);
+                        player.move(&map, -1, 1);
                     }
                     if (event.key.code == sf::Keyboard::Numpad3) {
-                        moveEntity(player, 1, 1, &map);
+                        player.move(&map, 1, 1);
                     }
                     if (event.key.code == sf::Keyboard::Escape) {
                         window.close();
