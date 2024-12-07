@@ -25,7 +25,8 @@ class Entity {
     char getSymbol();
     void setSymbol(char);
     void setColour(sf::Color);
-    void move(Map*, int, int);
+    void move(Map*, int, int, bool);
+    bool traverseStairs(Map*);
     void calculateFov(Map*);
     void recursiveFov(Map*, int, float, float, int, int, int, int);
 };

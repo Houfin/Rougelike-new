@@ -6,10 +6,13 @@ class Room {
     int startY;
     int endX;
     int endY;
+    bool stairs = false;
 
     public:
     Room();
     Room(int, int, int, int);
+    bool getStairs();
+    void setStairs(bool);
     int getStartX();
     int getStartY();
     void setStart(int, int);
@@ -54,7 +57,8 @@ class Map {
     std::vector<std::vector<Tile>> tiles;
 
     public:
-    void generateDungeon();
+    std::pair<int, int> generateDungeon();
+    void makeStairs(std::vector<Room>*);
     Map(int, int);
     Tile& getTile(int, int);
     void setTile(int, int, bool, bool, std::string, std::string);

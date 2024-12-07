@@ -11,6 +11,14 @@ Room::Room() {};
 Room::Room(int startX, int startY, int endX, int endY) : startX(startX), startY(startY), endX(endX), endY(endY) {
 }
 
+bool Room::getStairs() {
+    return stairs;
+}
+
+void Room::setStairs(bool new_stairs) {
+    stairs = new_stairs;
+}
+
 int Room::getStartX() {
     return startX;
 }
@@ -68,7 +76,9 @@ Room BSPNode::createRoom(Map* map, int roomNumber) {
     for (int y = roomY; y < roomY + roomHeight; ++y) {
         for (int x = roomX; x < roomX + roomWidth; ++x) {
             map->setTile(x, y, false, false, "floor", ".");
-            map->getTile(x, y).setLit(lit);
+            if (lit == true) {
+                map->getTile(x, y).setLit(lit);
+            }
         }
     }
 
@@ -77,7 +87,6 @@ Room BSPNode::createRoom(Map* map, int roomNumber) {
             // Check if it"s a border but not inside the room
             if (x == roomX - 1 || x == roomX + roomWidth || y == roomY - 1 || y == roomY + roomHeight) {
                 map->setTile(x, y, true, true, "room wall", "#");
-                map->getTile(x, y).setLit(lit);
             }
         }
     }
@@ -231,7 +240,7 @@ void Tile::setType(std::string new_type) {
 Map::Map(int width, int height) : width(width), height(height), tiles(height, std::vector<Tile>(width)){
 }
 
-void Map::generateDungeon() {
+std::pair<int, int> Map::generateDungeon() {
     std::cerr << "Starts generating map" << std::endl;
 
     // Every tile at the start is a wall.  
@@ -245,7 +254,33 @@ void Map::generateDungeon() {
     std::vector<Room> rooms;
     parent.createChildren(this, &rooms, (rand() % 2 == 0));
     parent.joinChildren(this);
+
+    makeStairs(&rooms);
+
+    std::pair<int, int> playerLoc;
+    Room playerStart = rooms.at(rand() % rooms.size());
+    playerLoc = {playerStart.getStartX() + (playerStart.getEndX() - playerStart.getStartX()) / 2, playerStart.getStartY() + (playerStart.getEndY() - playerStart.getStartY()) / 2};
+    return playerLoc;
 }
+
+void Map::makeStairs(std::vector<Room>* rooms) {
+    Room stairsRoom = rooms->at(rand() % rooms->size());
+    stairsRoom.setStairs(true);
+    setTile(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
+        stairsRoom.getStartX()), stairsRoom.getStartY() + rand() % (stairsRoom.getEndY() - stairsRoom.getStartY()),
+            false, false, "stairs", ">");
+
+    while (rand() % 2 != 0) {
+        stairsRoom = rooms->at(rand() % rooms->size());
+        if (stairsRoom.getStairs() == false) {
+            stairsRoom.setStairs(true);
+            setTile(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
+                    stairsRoom.getStartX()), stairsRoom.getStartY() + rand() % (stairsRoom.getEndY() - stairsRoom.getStartY()),
+                        false, false, "stairs", ">");
+        }
+    }
+}
+
 
 Tile& Map::getTile(int x, int y) {
     return tiles.at(y).at(x);

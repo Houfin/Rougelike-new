@@ -60,17 +60,29 @@ void Entity::setColour(sf::Color new_colour) {
     colour = new_colour;
 }
 
-void Entity::move(Map* map, int xChange, int yChange) {
-    if (x + xChange < 0 || x + xChange > (map->getWidth() - 1) 
-        || x + yChange < 0 || y + yChange > (map->getHeight() - 1)) {
-        return;
+void Entity::move(Map* map, int xChange, int yChange, bool repeat) {
+    do {
+        if (x + xChange < 0 || x + xChange > (map->getWidth() - 1) 
+            || x + yChange < 0 || y + yChange > (map->getHeight() - 1)) {
+            break;
+        }
+        Tile tile = map->getTile(getX() + xChange, getY() + yChange);
+        if (tile.getBlocksMove()) {
+            break;
+        }
+        setPos(x + xChange, y + yChange);
+        calculateFov(map);
+    } while (repeat == true);
+}
+
+bool Entity::traverseStairs(Map* map) {
+    if (map->getTile(x, y).getType() == "stairs") {
+        std::pair<int, int> location = map->generateDungeon();
+        setPos(location.first, location.second);
+        calculateFov(map);
+        return true;
     }
-    Tile tile = map->getTile(getX() + xChange, getY() + yChange);
-    if (tile.getBlocksMove()) {
-        return;
-    }
-    setPos(x + xChange, y + yChange);
-    calculateFov(map);
+    return false;
 }
 
 void Entity::calculateFov(Map* map) {

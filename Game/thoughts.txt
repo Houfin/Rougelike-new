@@ -10,9 +10,11 @@ I really like BSP at the moment, as it allows me to give each leaf node a chance
 
 
 Corridors!
-
 Moves from centre of child 1 to centre of child 2.  Results in straight corridors, but it makes sense for a 'dungeon' biome.
 
 
 FOV using recursive shadowcasting:
 Found on roguebasin after it was referenced in an r/roguelikedev post.
+
+
+Stairs??

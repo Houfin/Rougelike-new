@@ -79,7 +79,8 @@ int main() {
 
     //Create a new map object
     Map map = Map(NUM_TILES_WIDTH, NUM_TILES_HEIGHT);
-    map.generateDungeon();
+    std::pair<int,int> playerLoc = map.generateDungeon();
+    player.setPos(playerLoc.first, playerLoc.second);
     std::cerr << "Successfully generates map" << std::endl;
     player.calculateFov(&map);
     
@@ -117,44 +118,42 @@ int main() {
             //Check for all relevant keypress events
             if (event.type == sf::Event::KeyPressed) {
                 //Ctrl - Key operations
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) {
-                    if (event.key.code == sf::Keyboard::F) {
-                        toggleFullScreen(window, view, fullscreen);
-                    }
-                }
+                bool ctrl = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl);
                 //Shift - Key operations
-                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-                    
-                }
+                bool shift = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
                 //Basic Key operations
-                else {
-                    if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Numpad8) {
-                        player.move(&map, 0, -1);
-                    }
-                    if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::Numpad2) {
-                        player.move(&map, 0, 1);
-                    }
-                    if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::Numpad4) {
-                        player.move(&map, -1, 0);
-                    }
-                    if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::Numpad6) {
-                        player.move(&map, 1, 0);
-                    }
-                    if (event.key.code == sf::Keyboard::Numpad7) {
-                        player.move(&map, -1, -1);
-                    }
-                    if (event.key.code == sf::Keyboard::Numpad9) {
-                        player.move(&map, 1, -1);
-                    }
-                    if (event.key.code == sf::Keyboard::Numpad1) {
-                        player.move(&map, -1, 1);
-                    }
-                    if (event.key.code == sf::Keyboard::Numpad3) {
-                        player.move(&map, 1, 1);
-                    }
-                    if (event.key.code == sf::Keyboard::Escape) {
-                        window.close();
-                    }
+                if (event.key.code == sf::Keyboard::F && ctrl) {
+                    toggleFullScreen(window, view, fullscreen);
+                }
+                if (event.key.code == sf::Keyboard::Period && shift) {
+                    player.traverseStairs(&map);
+                }
+                if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Numpad8) {
+                    player.move(&map, 0, -1, shift);
+                }
+                if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::Numpad2) {
+                    player.move(&map, 0, 1, shift);
+                }
+                if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::Numpad4) {
+                    player.move(&map, -1, 0, shift);
+                }
+                if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::Numpad6) {
+                    player.move(&map, 1, 0, shift);
+                }
+                if (event.key.code == sf::Keyboard::Numpad7) {
+                    player.move(&map, -1, -1, shift);
+                }
+                if (event.key.code == sf::Keyboard::Numpad9) {
+                    player.move(&map, 1, -1, shift);
+                }
+                if (event.key.code == sf::Keyboard::Numpad1) {
+                    player.move(&map, -1, 1, shift);
+                }
+                if (event.key.code == sf::Keyboard::Numpad3) {
+                    player.move(&map, 1, 1, shift);
+                }
+                if (event.key.code == sf::Keyboard::Escape) {
+                    window.close();
                 }
             }
         }
