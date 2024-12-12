@@ -55,8 +55,10 @@ class Map {
     const int width;
     const int height;
     std::vector<std::vector<Tile>> tiles;
+    int level = 0;
 
     public:
+    int getLevel();
     std::pair<int, int> generateDungeon();
     void makeStairs(std::vector<Room>*);
     Map(int, int);

@@ -66,8 +66,8 @@ int BSPNode::getY() {
 }
 
 Room BSPNode::createRoom(Map* map, int roomNumber) {
-    int roomWidth = rand() % (width - 6) + 4;
-    int roomHeight = rand() % (height - 6) + 4;
+    int roomWidth = rand() % (width - 8) + 4;
+    int roomHeight = rand() % (height - 8) + 4;
     int roomX = x + (width - roomWidth) / 2;
     int roomY = y + (height - roomHeight) / 2;
     bool lit = rand() % 6; 
@@ -91,33 +91,28 @@ Room BSPNode::createRoom(Map* map, int roomNumber) {
         }
     }
 
-    std::cout << "A room is made at (" << roomX << ", " << roomY << ") with width " 
-        << roomWidth << " and height " << roomHeight << "\n" << "Room number " << roomNumber << std::endl;
-
     return room;
 }
 
 bool BSPNode::createChildren(Map* map, std::vector<Room>* rooms, bool splitHorizontally) {
-    std::cout << "Creating children for BSPNode at (" << x << ", " << y << ") with width " 
-          << width << " and height " << height << "\n";
-    if (width <= 16 && height <= 16) {
+    if (width <= 18 && height <= 18) {
         return true;
     }
 
-    if (width <= 16) {
+    if (width <= 18) {
         splitHorizontally = true;
     }
-    else if (height <= 16) {
+    else if (height <= 18) {
         splitHorizontally = false;
     }
 
     if (splitHorizontally) {
-        int split = rand() % (height - 8 * 2) + 8;
+        int split = rand() % (height - 9 * 2) + 9;
         child1 = new BSPNode(x, y, width, split);
         child2 = new BSPNode(x, y + split, width, height - split);
     } 
     else {
-        int split = rand() % (width - 8 * 2) + 8;
+        int split = rand() % (width - 9 * 2) + 9;
         child1 = new BSPNode(x, y, split, height);
         child2 = new BSPNode(x + split, y, width - split, height);
     }
@@ -144,16 +139,7 @@ void BSPNode::joinChildren(Map* map) {
     int prevX = -1;
     int prevY = -1;
 
-    std::cout << "Making corridor for a node split" << std::endl;
-
     while (currentX != endX || currentY != endY) {
-        if (currentX != endX) {
-            currentX += (endX > currentX) ? 1 : -1;
-        }
-
-        if (currentY != endY) {
-            currentY += (endY > currentY) ? 1 : -1;
-        }
         if (map->getTile(currentX, currentY).getType() == "room wall" or map->getTile(currentX, currentY).getType() == "door") {
             if (prevdoor == false) {
                 map->setTile(currentX, currentY, false, false, "door", "+");
@@ -170,6 +156,13 @@ void BSPNode::joinChildren(Map* map) {
                 }
             }
             map->setTile(currentX, currentY, false, false, "floor", ".");
+        }
+        if (currentX != endX) {
+            currentX += (endX > currentX) ? 1 : -1;
+        }
+
+        if (currentY != endY) {
+            currentY += (endY > currentY) ? 1 : -1;
         }
     }
 }
@@ -241,7 +234,6 @@ Map::Map(int width, int height) : width(width), height(height), tiles(height, st
 }
 
 std::pair<int, int> Map::generateDungeon() {
-    std::cerr << "Starts generating map" << std::endl;
 
     // Every tile at the start is a wall.  
     for (int i = 0; i < width; ++i) {
@@ -252,15 +244,19 @@ std::pair<int, int> Map::generateDungeon() {
 
     BSPNode parent = BSPNode(1, 1, width - 1, height - 1);
     std::vector<Room> rooms;
-    parent.createChildren(this, &rooms, (rand() % 2 == 0));
+    parent.createChildren(this, &rooms, (height > width));
     parent.joinChildren(this);
 
     makeStairs(&rooms);
-
+    level += 1;
     std::pair<int, int> playerLoc;
     Room playerStart = rooms.at(rand() % rooms.size());
     playerLoc = {playerStart.getStartX() + (playerStart.getEndX() - playerStart.getStartX()) / 2, playerStart.getStartY() + (playerStart.getEndY() - playerStart.getStartY()) / 2};
     return playerLoc;
+}
+
+int Map::getLevel() {
+    return level;
 }
 
 void Map::makeStairs(std::vector<Room>* rooms) {

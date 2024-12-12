@@ -7,7 +7,91 @@ static const int fovMultipliers[4][8] = {
     {1, 0, 0, 1, -1, 0, 0, -1}
 };
 
+StatBlock::StatBlock(int s, int co, int d, int i, int w, int ch) : str(s), con(co), dex(d), inte(i), wis(w), cha(ch) {
+}
+
+int StatBlock::getStr() {
+    return str;
+}
+
+int StatBlock::getCon() {
+    return con;
+}
+
+int StatBlock::getDex() {
+    return dex;
+}
+
+int StatBlock::getInte() {
+    return inte;
+}
+
+int StatBlock::getWis() {
+    return wis;
+}
+
+int StatBlock::getCha() {
+    return cha;
+}
+
+void StatBlock::setStr(int new_str) {
+    str = new_str;
+}
+
+void StatBlock::setCon(int new_con) {
+    con = new_con;
+}
+
+void StatBlock::setDex(int new_dex) {
+    dex = new_dex;
+}
+
+void StatBlock::setInte(int new_inte) {
+    inte = new_inte;
+}
+
+void StatBlock::setWis(int new_wis) {
+    wis = new_wis;
+}
+
+void StatBlock::setCha(int new_cha) {
+    cha = new_cha;
+}
+
+int StatBlock::getMaxHP() {
+    return (std::max(0, (con - 3)) * (con - 3));
+}
+
+int StatBlock::getMaxSP() {
+    return (std::max(0, (wis - 8)) * (wis - 8));
+}
+
+
 Entity::Entity(int x, int y, char symbol, sf::Color colour, int light) : x(x), y(y), symbol(symbol), colour(colour), prevX(0), prevY(0), light(light) {
+}
+
+StatBlock* Entity::getStats() {
+    return &stats;
+}
+
+void Entity::setStats(int a, int b, int c, int d, int e, int f) {
+    stats = StatBlock(a, b, c, d, e, f);
+}
+
+int Entity::getLevel() {
+    return level;
+}
+
+void Entity::setLevel(int new_level) {
+    level = new_level;
+}
+
+int Entity::getGold() {
+    return gold;
+}
+
+void Entity::setGold(int new_gold) {
+    gold = new_gold;
 }
 
 int Entity::getX() {
@@ -60,14 +144,16 @@ void Entity::setColour(sf::Color new_colour) {
     colour = new_colour;
 }
 
-void Entity::move(Map* map, int xChange, int yChange, bool repeat) {
+void Entity::move(Map* map, int xChange, int yChange, bool repeat, MessageLog* messages) {
     do {
         if (x + xChange < 0 || x + xChange > (map->getWidth() - 1) 
             || x + yChange < 0 || y + yChange > (map->getHeight() - 1)) {
+            messages->addMessage(Message(16777215, "An inky blackness prevents you from walking further"));
             break;
         }
         Tile tile = map->getTile(getX() + xChange, getY() + yChange);
         if (tile.getBlocksMove()) {
+            messages->addMessage(Message(16777215, "That's a wall, bozo"));
             break;
         }
         setPos(x + xChange, y + yChange);

@@ -17,4 +17,15 @@ FOV using recursive shadowcasting:
 Found on roguebasin after it was referenced in an r/roguelikedev post.
 
 
-Stairs??
+Stairs.  can only go down stairs, meaning that to have a better chance of success, levels must be completely explored.
+
+Message Log:  4 messages on the screen at a time, break of one, 2 lines of status including dungeon level, health, SP, etc. and 1 more break line before the map.
+
+Data displayed on the screen:  XP level, health, stats, gold, dungeon level, (Magical) Power? 
+
+For future reference:  Game structure.  Composed of several biomes, starting with The Cellars, The Dungeon, The Caves, The Jungle (GnR reference), The Underworld, Bert's Lair.
+You (whoever you are of whatever race and whatever class etc) are chasing the Wizard of Bert (name subject to change) and have discovered a network of cellars under his castle.
+You then follow these cellars deeper and deeper until you eventually confront the Wizard of Bert, and Bert (previously not known about) himself praises you for saving him.
+Saving him is not the aim of the game to begin with, however.  For Lawful classes the aim is to bring the Wizard to justice for his oppression of the people of "place".  For Neutral
+classes, the aim is to steal all of the treasures which he must possess, owning as he does a big castle, and being as he is a fancy wizard.  For Chaotic classes, the aim is simply 
+to go on a little murder spree which culminates in your quest to kill the most powerful wizard in "place".
