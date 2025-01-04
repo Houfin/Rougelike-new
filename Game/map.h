@@ -66,6 +66,7 @@ class Map {
     void setTile(int, int, bool, bool, std::string, std::string);
     int getWidth();
     int getHeight();
+    void placeItems();
 };
 
 class BSPNode {

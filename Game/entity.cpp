@@ -146,18 +146,31 @@ void Entity::setColour(sf::Color new_colour) {
 
 void Entity::move(Map* map, int xChange, int yChange, bool repeat, MessageLog* messages) {
     do {
-        if (x + xChange < 0 || x + xChange > (map->getWidth() - 1) 
-            || x + yChange < 0 || y + yChange > (map->getHeight() - 1)) {
-            messages->addMessage(Message(16777215, "An inky blackness prevents you from walking further"));
+        Tile tile = map->getTile(x + xChange, y + yChange);
+        if (tile.getBlocksMove()) {
             break;
         }
-        Tile tile = map->getTile(getX() + xChange, getY() + yChange);
-        if (tile.getBlocksMove()) {
-            messages->addMessage(Message(16777215, "That's a wall, bozo"));
+        if (tile.getType() == "door") {
+            messages->addMessage(Message(16777215, "You carefully and slowly smash open the door"));
+            map->setTile(x + xChange, y + yChange, false, false, "open door", "'");
+            calculateFov(map);
             break;
         }
         setPos(x + xChange, y + yChange);
         calculateFov(map);
+
+        int tiles = 0;
+        bool door = false;
+        for (int i = x - 1; i <= x + 1; ++i) {
+            for (int j = y - 1; j <= y + 1; ++j) {
+                tile = map->getTile(i, j);
+                if (tile.getType() == "door" || tile.getType() == "open door") door = true;
+            }
+        } 
+        if (tiles == 3 || tiles == 4 || door) repeat = false;
+
+        std::cerr << tiles << std::endl;
+
     } while (repeat == true);
 }
 

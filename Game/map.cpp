@@ -5,6 +5,7 @@
 #include <ctime>
 #include <SFML/Graphics.hpp>
 #include "map.h"
+#include "item.cpp"
 
 Room::Room() {};
 
@@ -76,9 +77,7 @@ Room BSPNode::createRoom(Map* map, int roomNumber) {
     for (int y = roomY; y < roomY + roomHeight; ++y) {
         for (int x = roomX; x < roomX + roomWidth; ++x) {
             map->setTile(x, y, false, false, "floor", ".");
-            if (lit == true) {
-                map->getTile(x, y).setLit(lit);
-            }
+            map->getTile(x, y).setLit(lit);
         }
     }
 
@@ -87,6 +86,7 @@ Room BSPNode::createRoom(Map* map, int roomNumber) {
             // Check if it"s a border but not inside the room
             if (x == roomX - 1 || x == roomX + roomWidth || y == roomY - 1 || y == roomY + roomHeight) {
                 map->setTile(x, y, true, true, "room wall", "#");
+                map->getTile(x, y).setLit(lit);
             }
         }
     }
@@ -142,7 +142,7 @@ void BSPNode::joinChildren(Map* map) {
     while (currentX != endX || currentY != endY) {
         if (map->getTile(currentX, currentY).getType() == "room wall" or map->getTile(currentX, currentY).getType() == "door") {
             if (prevdoor == false) {
-                map->setTile(currentX, currentY, false, false, "door", "+");
+                map->setTile(currentX, currentY, false, true, "door", "+");
                 prevdoor = true;
             }
             prevX = currentX;
@@ -151,7 +151,7 @@ void BSPNode::joinChildren(Map* map) {
         else {
             if (prevdoor == true && map->getTile(currentX, currentY).getType() == "wall") {
                 if (map->getTile(currentX, currentY).getType() != "floor") {
-                    map->setTile(prevX, prevY, false, false, "door", "+");
+                    map->setTile(prevX, prevY, false, true, "door", "+");
                     prevdoor = false;
                 }
             }
@@ -266,7 +266,7 @@ void Map::makeStairs(std::vector<Room>* rooms) {
         stairsRoom.getStartX()), stairsRoom.getStartY() + rand() % (stairsRoom.getEndY() - stairsRoom.getStartY()),
             false, false, "stairs", ">");
 
-    while (rand() % 2 != 0) {
+    if (rand() % 2 != 0) {
         stairsRoom = rooms->at(rand() % rooms->size());
         if (stairsRoom.getStairs() == false) {
             stairsRoom.setStairs(true);
@@ -294,4 +294,21 @@ int Map::getHeight() {
 
 int Map::getWidth() {
     return width;
+}
+
+void Map::placeItems() {
+    Room itemRoom;
+    for (int i = 0; i < 2; ++i) {
+        itemRoom = rooms->at(rand() % rooms->size());
+        Item(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
+            stairsRoom.getStartX()), stairsRoom.getStartY() + rand() % (stairsRoom.getEndY() - stairsRoom.getStartY()),
+                false, false, "stairs", ">");
+    }
+
+    if (rand() % 3 != 0) {
+        itemRoom = rooms->at(rand() % rooms->size());
+        Item(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
+            stairsRoom.getStartX()), stairsRoom.getStartY() + rand() % (stairsRoom.getEndY() - stairsRoom.getStartY()),
+                false, false, "stairs", ">");
+    }
 }
