@@ -2,6 +2,8 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <ctime>
 #include <SFML/Graphics.hpp>
 #include "map.h"
@@ -229,6 +231,33 @@ void Tile::setType(std::string new_type) {
 }
 
 
+
+Item getItemFromFile(int level) {
+    std::ifstream ItemFile("./itemLists/CellarItems.csv");;
+
+    std::string line;
+    std::vector<std::string> row, lines;
+    while (std::getline(ItemFile, line)) {
+        lines.push_back(line);
+    }
+    
+    int randomIndex = rand() % lines.size();
+    line = lines[randomIndex];
+
+    std::stringstream s(line);
+    std::string value;
+
+    row.clear();
+    while (std::getline(s, value, ',')) {
+        row.push_back(value);
+    }
+
+    ItemFile.close();
+
+    return Item(row[0], row[1], (sf::Color(std::stoi(row[2]))), row[3]);
+} 
+
+
 Map::Map(int width, int height) : width(width), height(height), tiles(height, std::vector<Tile>(width)){
 }
 
@@ -299,16 +328,18 @@ std::vector<Item*> Map::placeItems() {
     Room itemRoom;
     for (int i = 0; i < 2; ++i) {
         itemRoom = rooms->at(rand() % rooms->size());
-        items.push_back(&getItemFromFile(level));
-        items.back()->setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
+        Item item = getItemFromFile(level);
+        item.setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
             itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()));
+        items.push_back(&item);
     }
 
     if (rand() % 3 != 0) {
         itemRoom = rooms->at(rand() % rooms->size());
-        items.push_back(&getItemFromFile(level));
-        items.back()->setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
+        Item item = getItemFromFile(level);
+        item.setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
             itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()));
+        items.push_back(&item);
     }
     return items;
 }

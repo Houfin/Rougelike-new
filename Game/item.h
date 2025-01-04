@@ -3,19 +3,20 @@
 
 class Item {
     private:
-        const std::string name;
-        const char sprite;
-        const sf::Color colour;
-        const std::string itemType;
-        int x;
-        int y;
+    std::string name;
+    std::string sprite;
+    sf::Color colour;
+    std::string itemType;
+    int x = 0;
+    int y = 0;
+    
     public:
-        Item(std::string, char, sf::Color, std::string, int, int);
-        std::string getName();
-        char getSprite();
-        sf::Color getColour();
-        std::string getType();
-        int getX();
-        int getY();
-        void setPos(int, int);
+    Item(std::string, std::string, sf::Color, std::string);
+    std::string getName();
+    std::string getSprite();
+    sf::Color getColour();
+    std::string getType();
+    int getX();
+    int getY();
+    void setPos(int, int);
 }; 

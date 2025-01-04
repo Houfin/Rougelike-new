@@ -1,5 +1,5 @@
 #include <string>
-#include "item.cpp"
+#include "item.h"
 
 class Room {
     private:
