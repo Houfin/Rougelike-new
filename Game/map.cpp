@@ -5,7 +5,6 @@
 #include <ctime>
 #include <SFML/Graphics.hpp>
 #include "map.h"
-#include "item.cpp"
 
 Room::Room() {};
 
@@ -243,14 +242,13 @@ std::pair<int, int> Map::generateDungeon() {
     }
 
     BSPNode parent = BSPNode(1, 1, width - 1, height - 1);
-    std::vector<Room> rooms;
-    parent.createChildren(this, &rooms, (height > width));
+    parent.createChildren(this, rooms, (height > width));
     parent.joinChildren(this);
 
-    makeStairs(&rooms);
+    makeStairs();
     level += 1;
     std::pair<int, int> playerLoc;
-    Room playerStart = rooms.at(rand() % rooms.size());
+    Room playerStart = rooms->at(rand() % rooms->size());
     playerLoc = {playerStart.getStartX() + (playerStart.getEndX() - playerStart.getStartX()) / 2, playerStart.getStartY() + (playerStart.getEndY() - playerStart.getStartY()) / 2};
     return playerLoc;
 }
@@ -259,7 +257,7 @@ int Map::getLevel() {
     return level;
 }
 
-void Map::makeStairs(std::vector<Room>* rooms) {
+void Map::makeStairs() {
     Room stairsRoom = rooms->at(rand() % rooms->size());
     stairsRoom.setStairs(true);
     setTile(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
@@ -296,19 +294,21 @@ int Map::getWidth() {
     return width;
 }
 
-void Map::placeItems() {
+std::vector<Item*> Map::placeItems() {
+    std::vector<Item*> items;
     Room itemRoom;
     for (int i = 0; i < 2; ++i) {
         itemRoom = rooms->at(rand() % rooms->size());
-        Item(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
-            itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()),
-                false, false, "stairs", ">");
+        items.push_back(&getItemFromFile(level));
+        items.back()->setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
+            itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()));
     }
 
     if (rand() % 3 != 0) {
         itemRoom = rooms->at(rand() % rooms->size());
-        Item(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
-            itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()),
-                false, false, "stairs", ">");
+        items.push_back(&getItemFromFile(level));
+        items.back()->setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
+            itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()));
     }
+    return items;
 }

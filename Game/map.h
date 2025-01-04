@@ -1,4 +1,5 @@
 #include <string>
+#include "item.cpp"
 
 class Room {
     private:
@@ -56,17 +57,18 @@ class Map {
     const int height;
     std::vector<std::vector<Tile>> tiles;
     int level = 0;
+    std::vector<Room>* rooms = {};
 
     public:
     int getLevel();
     std::pair<int, int> generateDungeon();
-    void makeStairs(std::vector<Room>*);
+    void makeStairs();
     Map(int, int);
     Tile& getTile(int, int);
     void setTile(int, int, bool, bool, std::string, std::string);
     int getWidth();
     int getHeight();
-    void placeItems();
+    std::vector<Item*> placeItems();
 };
 
 class BSPNode {

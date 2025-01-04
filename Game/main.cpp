@@ -45,6 +45,21 @@ void displayEntities(std::vector<Entity*>& entities, sf::RenderWindow& window, s
     }
 }
 
+void displayItems(std::vector<Item*>& items, sf::RenderWindow& window, sf::Font& font) {
+    for (int i = 0; i < items.size(); ++i) {
+        sf::Text itemsSprite(items.at(i)->getSprite(), font, TILE_SIZE);
+        itemsSprite.setFillColor(items.at(i)->getColour());
+        itemsSprite.setPosition((items.at(i)->getX() + 0.25) * TILE_SIZE, (items.at(i)->getY() - 0.125) * TILE_SIZE + LOG_HEIGHT);
+
+        sf::RectangleShape clear(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+        clear.setFillColor(sf::Color::Black);
+        clear.setPosition((items.at(i)->getX() + 0.25) * TILE_SIZE, (items.at(i)->getY() - 0.125) * TILE_SIZE + LOG_HEIGHT);
+
+        window.draw(clear);
+        window.draw(itemsSprite);
+    }
+}
+
 void displayMessages(std::deque<Message> messages, sf::RenderWindow& window, sf::Font& font) {
     for (int i = 0; i < messages.size(); ++i) {
         sf::Text message(messages.at(i).getContent(), font, TILE_SIZE);
@@ -67,7 +82,7 @@ void displayStats(Map& map, sf::RenderWindow& window, sf::Font& font, Entity* pl
     window.draw(stats);
 }
 
-void refresh(sf::RenderWindow& window, Map& map, sf::Font& font, std::vector<Entity*>& entities, MessageLog& messageLog, bool oldMessages) {
+void refresh(sf::RenderWindow& window, Map& map, sf::Font& font, std::vector<Entity*>& entities, MessageLog& messageLog, bool oldMessages, std::vector<Item*> items) {
     window.clear(sf::Color::Black);
 
     displayMap(map, window, font);
@@ -80,6 +95,8 @@ void refresh(sf::RenderWindow& window, Map& map, sf::Font& font, std::vector<Ent
     else {
         displayMessages(messageLog.getMessages(), window, font);
     }
+
+    displayItems(items, window, font);
 
     displayStats(map, window, font, entities.at(0));
 
@@ -126,6 +143,7 @@ int main() {
     //Create a new map object
     Map map = Map(NUM_TILES_WIDTH, NUM_TILES_HEIGHT);
     std::pair<int,int> playerLoc = map.generateDungeon();
+    std::vector<Item*> items = map.placeItems(); 
     player.setPos(playerLoc.first, playerLoc.second);
     std::cerr << "Successfully generates map" << std::endl;
     player.calculateFov(&map);
@@ -142,7 +160,7 @@ int main() {
         return -1;  // Exit if the window fails to open
     }
 
-    refresh(window, map, font, entities, messageLog, oldMessages);
+    refresh(window, map, font, entities, messageLog, oldMessages, items);
 
     // Game loop
     while (window.isOpen()) {
@@ -168,46 +186,46 @@ int main() {
                 }
                 if (event.key.code == sf::Keyboard::Period && shift) {
                     player.traverseStairs(&map);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Numpad8) {
                     player.move(&map, 0, -1, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::Numpad2) {
                     player.move(&map, 0, 1, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::Numpad4) {
                     player.move(&map, -1, 0, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::Numpad6) {
                     player.move(&map, 1, 0, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Numpad7 || event.key.code == sf::Keyboard::Home) {
                     player.move(&map, -1, -1, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Numpad9 || event.key.code == sf::Keyboard::PageUp) {
                     player.move(&map, 1, -1, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Numpad1 || event.key.code == sf::Keyboard::End) {
                     player.move(&map, -1, 1, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Numpad3 || event.key.code == sf::Keyboard::PageDown) {
                     player.move(&map, 1, 1, shift, &messageLog);
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Escape) {
                     window.close();
                 }
                 if (event.key.code == sf::Keyboard::Num6 && shift) {
                     oldMessages = true;
-                    refresh(window, map, font, entities, messageLog, oldMessages);
+                    refresh(window, map, font, entities, messageLog, oldMessages, items);
                     oldMessages = false;
                 }
             }
