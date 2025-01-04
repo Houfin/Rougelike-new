@@ -300,15 +300,15 @@ void Map::placeItems() {
     Room itemRoom;
     for (int i = 0; i < 2; ++i) {
         itemRoom = rooms->at(rand() % rooms->size());
-        Item(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
-            stairsRoom.getStartX()), stairsRoom.getStartY() + rand() % (stairsRoom.getEndY() - stairsRoom.getStartY()),
+        Item(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
+            itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()),
                 false, false, "stairs", ">");
     }
 
     if (rand() % 3 != 0) {
         itemRoom = rooms->at(rand() % rooms->size());
-        Item(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
-            stairsRoom.getStartX()), stairsRoom.getStartY() + rand() % (stairsRoom.getEndY() - stairsRoom.getStartY()),
+        Item(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
+            itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()),
                 false, false, "stairs", ">");
     }
 }
