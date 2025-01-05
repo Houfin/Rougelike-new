@@ -65,7 +65,7 @@ class Entity {
     void setSymbol(char);
     void setColour(sf::Color);
     void move(Map*, int, int, bool, MessageLog*);
-    bool traverseStairs(Map*);
+    std::vector<Item> traverseStairs(Map*);
     void calculateFov(Map*);
     void recursiveFov(Map*, int, float, float, int, int, int, int);
 };

@@ -45,15 +45,15 @@ void displayEntities(std::vector<Entity*>& entities, sf::RenderWindow& window, s
     }
 }
 
-void displayItems(std::vector<Item*>& items, sf::RenderWindow& window, sf::Font& font) {
+void displayItems(std::vector<Item>& items, sf::RenderWindow& window, sf::Font& font) {
     for (int i = 0; i < items.size(); ++i) {
-        sf::Text itemsSprite(items.at(i)->getSprite(), font, TILE_SIZE);
-        itemsSprite.setFillColor(items.at(i)->getColour());
-        itemsSprite.setPosition((items.at(i)->getX() + 0.25) * TILE_SIZE, (items.at(i)->getY() - 0.125) * TILE_SIZE + LOG_HEIGHT);
+        sf::Text itemsSprite(items.at(i).getSprite(), font, TILE_SIZE);
+        itemsSprite.setFillColor(items.at(i).getColour());
+        itemsSprite.setPosition((items.at(i).getX() + 0.25) * TILE_SIZE, (items.at(i).getY() - 0.125) * TILE_SIZE + LOG_HEIGHT); 
 
         sf::RectangleShape clear(sf::Vector2f(TILE_SIZE, TILE_SIZE));
         clear.setFillColor(sf::Color::Black);
-        clear.setPosition((items.at(i)->getX() + 0.25) * TILE_SIZE, (items.at(i)->getY() - 0.125) * TILE_SIZE + LOG_HEIGHT);
+        clear.setPosition((items.at(i).getX() + 0.25) * TILE_SIZE, (items.at(i).getY() - 0.125) * TILE_SIZE + LOG_HEIGHT);
 
         window.draw(clear);
         window.draw(itemsSprite);
@@ -82,13 +82,11 @@ void displayStats(Map& map, sf::RenderWindow& window, sf::Font& font, Entity* pl
     window.draw(stats);
 }
 
-void refresh(sf::RenderWindow& window, Map& map, sf::Font& font, std::vector<Entity*>& entities, MessageLog& messageLog, bool oldMessages, std::vector<Item*> items) {
+void refresh(sf::RenderWindow& window, Map& map, sf::Font& font, std::vector<Entity*>& entities, MessageLog& messageLog, bool oldMessages, std::vector<Item> items) {
     window.clear(sf::Color::Black);
 
     displayMap(map, window, font);
-
-    displayEntities(entities, window, font);
-
+    
     if (oldMessages) {
         displayMessages(messageLog.getOldMessage(), window, font);
     }
@@ -97,6 +95,8 @@ void refresh(sf::RenderWindow& window, Map& map, sf::Font& font, std::vector<Ent
     }
 
     displayItems(items, window, font);
+    
+    displayEntities(entities, window, font);
 
     displayStats(map, window, font, entities.at(0));
 
@@ -138,15 +138,16 @@ int main() {
     entities.push_back(&player);
 
     MessageLog messageLog = MessageLog();
-    messageLog.addMessage(Message(16777215, "Welcome to <INSERT_NAME_HERE>!"));
+    messageLog.addMessage(Message(0xFFFFFFFF, "Welcome to <INSERT_NAME_HERE>!"));
 
     //Create a new map object
     Map map = Map(NUM_TILES_WIDTH, NUM_TILES_HEIGHT);
-    std::pair<int,int> playerLoc = map.generateDungeon();
-    std::vector<Item*> items = map.placeItems(); 
-    player.setPos(playerLoc.first, playerLoc.second);
-    std::cerr << "Successfully generates map" << std::endl;
+    std::pair<std::pair<int,int>,std::vector<Item>> playerLoc = map.generateDungeon();
+    std::vector<Item> items = playerLoc.second;
+    player.setPos(playerLoc.first.first, playerLoc.first.second);
     player.calculateFov(&map);
+
+    std::cerr << "Dungeon Initialisation Complete" << std::endl;
     
     // Creates a window
     sf::RenderWindow window(sf::VideoMode(TILE_SIZE * NUM_TILES_WIDTH, TILE_SIZE * NUM_TILES_HEIGHT + LOG_HEIGHT), "CPP Rougelike");
@@ -185,7 +186,9 @@ int main() {
                     toggleFullScreen(window, view, fullscreen);
                 }
                 if (event.key.code == sf::Keyboard::Period && shift) {
-                    player.traverseStairs(&map);
+                    std::vector<Item> newItems = player.traverseStairs(&map);
+                    if (newItems.size() != 0) items = newItems;
+                    else messageLog.addMessage(Message(0xFFFFFFFF, "You imagine yourself sinking through the floor... but nothing happens"));
                     refresh(window, map, font, entities, messageLog, oldMessages, items);
                 }
                 if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Numpad8) {

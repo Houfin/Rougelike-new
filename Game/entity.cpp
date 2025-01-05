@@ -151,7 +151,7 @@ void Entity::move(Map* map, int xChange, int yChange, bool repeat, MessageLog* m
             break;
         }
         if (tile.getType() == "door") {
-            messages->addMessage(Message(16777215, "You carefully and slowly smash open the door"));
+            messages->addMessage(Message(0xFFFFFFFF, "You carefully and slowly smash open the door"));
             map->setTile(x + xChange, y + yChange, false, false, "open door", "'");
             calculateFov(map);
             break;
@@ -169,19 +169,17 @@ void Entity::move(Map* map, int xChange, int yChange, bool repeat, MessageLog* m
         } 
         if (tiles == 3 || tiles == 4 || door) repeat = false;
 
-        std::cerr << tiles << std::endl;
-
     } while (repeat == true);
 }
 
-bool Entity::traverseStairs(Map* map) {
+std::vector<Item> Entity::traverseStairs(Map* map) {
     if (map->getTile(x, y).getType() == "stairs") {
-        std::pair<int, int> location = map->generateDungeon();
-        setPos(location.first, location.second);
+        std::pair<std::pair<int,int>,std::vector<Item>> location = map->generateDungeon();
+        setPos(location.first.first, location.first.second);
         calculateFov(map);
-        return true;
+        return location.second;
     }
-    return false;
+    return std::vector<Item> {};
 }
 
 void Entity::calculateFov(Map* map) {

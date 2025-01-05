@@ -251,34 +251,35 @@ Item getItemFromFile(int level) {
     while (std::getline(s, value, ',')) {
         row.push_back(value);
     }
-
     ItemFile.close();
-
-    return Item(row[0], row[1], (sf::Color(std::stoi(row[2]))), row[3]);
+    return Item(row.at(0), row.at(1), (sf::Color(std::stoi(row.at(2)))), row.at(3));
 } 
 
 
 Map::Map(int width, int height) : width(width), height(height), tiles(height, std::vector<Tile>(width)){
 }
 
-std::pair<int, int> Map::generateDungeon() {
-
+std::pair<std::pair<int,int>,std::vector<Item>> Map::generateDungeon() {
+    
     // Every tile at the start is a wall.  
     for (int i = 0; i < width; ++i) {
         for (int j = 0; j < height; ++j) {
             setTile(i, j, true, true, "wall", "#");
         }
     }
-
     BSPNode parent = BSPNode(1, 1, width - 1, height - 1);
-    parent.createChildren(this, rooms, (height > width));
-    parent.joinChildren(this);
+    std::vector<Room> rooms;
 
-    makeStairs();
+    parent.createChildren(this, &rooms, (height > width));
+    
+    parent.joinChildren(this);
+    
+    makeStairs(&rooms);
+    
     level += 1;
-    std::pair<int, int> playerLoc;
-    Room playerStart = rooms->at(rand() % rooms->size());
-    playerLoc = {playerStart.getStartX() + (playerStart.getEndX() - playerStart.getStartX()) / 2, playerStart.getStartY() + (playerStart.getEndY() - playerStart.getStartY()) / 2};
+    std::pair<std::pair<int,int>,std::vector<Item>> playerLoc;
+    Room playerStart = rooms.at(rand() % rooms.size());
+    playerLoc = {{playerStart.getStartX() + (playerStart.getEndX() - playerStart.getStartX()) / 2, playerStart.getStartY() + (playerStart.getEndY() - playerStart.getStartY()) / 2}, placeItems(&rooms)};
     return playerLoc;
 }
 
@@ -286,7 +287,7 @@ int Map::getLevel() {
     return level;
 }
 
-void Map::makeStairs() {
+void Map::makeStairs(std::vector<Room>* rooms) {
     Room stairsRoom = rooms->at(rand() % rooms->size());
     stairsRoom.setStairs(true);
     setTile(stairsRoom.getStartX() + rand() % (stairsRoom.getEndX() - 
@@ -323,15 +324,15 @@ int Map::getWidth() {
     return width;
 }
 
-std::vector<Item*> Map::placeItems() {
-    std::vector<Item*> items;
+std::vector<Item> Map::placeItems(std::vector<Room>* rooms) {
+    std::vector<Item> items;
     Room itemRoom;
     for (int i = 0; i < 2; ++i) {
         itemRoom = rooms->at(rand() % rooms->size());
         Item item = getItemFromFile(level);
         item.setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
             itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()));
-        items.push_back(&item);
+        items.push_back(item);
     }
 
     if (rand() % 3 != 0) {
@@ -339,7 +340,7 @@ std::vector<Item*> Map::placeItems() {
         Item item = getItemFromFile(level);
         item.setPos(itemRoom.getStartX() + rand() % (itemRoom.getEndX() - 
             itemRoom.getStartX()), itemRoom.getStartY() + rand() % (itemRoom.getEndY() - itemRoom.getStartY()));
-        items.push_back(&item);
+        items.push_back(item);
     }
     return items;
 }
